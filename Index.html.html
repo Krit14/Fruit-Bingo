@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>เกมบิงโกผลไม้ 🍓 Fruit Bingo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#FFF8E7;
+    --bg-2:#EAF7EE;
+    --ink:#3A2E1F;
+    --ink-soft:#7A6E5C;
+    --card:#FFFFFF;
+    --watermelon:#FF5D6C;
+    --watermelon-dark:#E14555;
+    --leaf:#4CAF6D;
+    --leaf-dark:#3A9357;
+    --banana:#FFC93C;
+    --grape:#9B7BD8;
+    --shadow:0 8px 24px rgba(58,46,31,0.10);
+    --shadow-soft:0 4px 12px rgba(58,46,31,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Mali','Kanit',sans-serif;
+    background:
+      radial-gradient(circle at 8% 8%, rgba(255,201,60,0.18), transparent 40%),
+      radial-gradient(circle at 92% 18%, rgba(155,123,216,0.16), transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(76,175,109,0.14), transparent 45%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    min-height:100vh;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:18px 14px 40px;
+    overflow-x:hidden;
+  }
+  .wrap{width:100%;max-width:920px;min-width:0;}
+
+  /* ===== Header ===== */
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .title{
+    font-weight:700;
+    font-size:clamp(22px,4.4vw,32px);
+    color:var(--watermelon-dark);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    letter-spacing:0.3px;
+  }
+  .title .leaf-dot{color:var(--leaf-dark);font-size:0.55em;vertical-align:middle;}
+  .header-controls{display:flex;align-items:center;gap:8px;}
+
+  .lang-toggle{
+    display:flex;
+    background:var(--card);
+    border-radius:999px;
+    padding:4px;
+    box-shadow:var(--shadow-soft);
+    gap:2px;
+  }
+  .lang-toggle button{
+    border:none;
+    background:transparent;
+    font-family:inherit;
+    font-weight:700;
+    font-size:14px;
+    padding:8px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    color:var(--ink-soft);
+    transition:background .25s, color .25s;
+  }
+  .lang-toggle button.active{
+    background:var(--watermelon);
+    color:#fff;
+  }
+
+  .icon-btn{
+    border:none;
+    background:var(--card);
+    box-shadow:var(--shadow-soft);
+    border-radius:999px;
+    width:44px;height:44px;
+    font-size:19px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:transform .15s;
+  }
+  .icon-btn:active{transform:scale(0.9);}
+  .icon-btn:focus-visible, button:focus-visible{outline:3px solid var(--grape);outline-offset:2px;}
+
+  .subtitle{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:-6px 0 18px;
+  }
+
+  /* ===== Layout: caller + board ===== */
+  .game-area{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  @media(min-width:760px){
+    .game-area{flex-direction:row;align-items:flex-start;}
+    .caller-col{flex:0 0 270px;position:sticky;top:14px;}
+    .board-col{flex:1;}
+  }
+
+  /* ===== Caller card ===== */
+  .caller-card{
+    background:var(--card);
+    border-radius:26px;
+    box-shadow:var(--shadow);
+    padding:18px 18px 16px;
+    text-align:center;
+  }
+  .caller-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--leaf-dark);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:6px;
+  }
+  .caller-emoji{
+    font-size:64px;
+    line-height:1;
+    margin:6px 0 4px;
+    animation:pop .35s ease;
+  }
+  @keyframes pop{from{transform:scale(0.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .caller-name{
+    font-size:24px;
+    font-weight:700;
+    margin-bottom:12px;
+    min-height:30px;
+  }
+  .progress-track{
+    height:8px;
+    background:#F1ECE0;
+    border-radius:999px;
+    overflow:hidden;
+    margin-bottom:14px;
+  }
+  .progress-fill{
+    height:100%;
+    width:100%;
+    background:linear-gradient(90deg,var(--banana),var(--watermelon));
+    border-radius:999px;
+    transition:width .1s linear;
+  }
+  .caller-buttons{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .pill-btn{
+    border:none;
+    border-radius:999px;
+    padding:10px 16px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+    transition:transform .15s, filter .15s;
+  }
+  .pill-btn:active{transform:scale(0.94);}
+  .pill-btn.primary{background:var(--watermelon);color:#fff;}
+  .pill-btn.secondary{background:#F1ECE0;color:var(--ink);}
+  .pill-btn:hover{filter:brightness(1.05);}
+
+  .history{
+    margin-top:16px;
+    text-align:left;
+  }
+  .history-label{font-size:12px;color:var(--ink-soft);font-weight:700;margin-bottom:6px;}
+  .history-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{
+    background:#F6F2E8;
+    border-radius:10px;
+    padding:4px 8px;
+    font-size:18px;
+    line-height:1.1;
+  }
+
+  /* ===== Board ===== */
+  .board{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:8px;
+    width:100%;
+  }
+  .cell{
+    aspect-ratio:1/1;
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+    border:none;
+    border-radius:18px;
+    box-shadow:var(--shadow-soft);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    cursor:pointer;
+    position:relative;
+    font-family:inherit;
+    padding:6px 3px;
+    transition:transform .12s;
+  }
+  .cell:active{transform:scale(0.95);}
+  .cell .emoji{font-size:clamp(20px,6vw,40px);}
+  .cell .label{
+    font-size:clamp(9.5px,2.6vw,14px);
+    font-weight:700;
+    text-align:center;
+    color:var(--ink);
+    line-height:1.15;
+    width:100%;
+    overflow-wrap:break-word;
+    word-break:break-word;
+    hyphens:auto;
+  }
+  .cell.shake{animation:shake .4s;}
+  @keyframes shake{
+    10%,90%{transform:translateX(-2px);}
+    20%,80%{transform:translateX(4px);}
+    30%,50%,70%{transform:translateX(-7px);}
+    40%,60%{transform:translateX(7px);}
+  }
+  .stamp{
+    position:absolute;
+    inset:0;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(76,175,109,0.18);
+    opacity:0;
+    transform:scale(0.5) rotate(-12deg);
+    transition:opacity .2s, transform .25s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none;
+  }
+  .cell.marked .stamp{opacity:1;transform:scale(1) rotate(-8deg);}
+  .stamp svg{width:46%;height:46%;}
+  .cell.win-cell{box-shadow:0 0 0 3px var(--watermelon), var(--shadow);}
+
+  .howto-toggle{
+    margin-top:16px;
+    font-size:13px;
+    color:var(--leaf-dark);
+    font-weight:700;
+    background:none;
+    border:none;
+    cursor:pointer;
+    text-decoration:underline;
+    font-family:inherit;
+    padding:4px 0;
+  }
+  .howto-box{
+    display:none;
+    background:#F6F2E8;
+    border-radius:14px;
+    padding:12px 16px;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin-top:8px;
+    line-height:1.5;
+  }
+  .howto-box.open{display:block;}
+
+  /* ===== Win overlay ===== */
+  .win-overlay{
+    position:fixed;inset:0;
+    background:rgba(58,46,31,0.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    overflow:hidden;
+  }
+  .win-overlay.show{display:flex;}
+  .win-card{
+    background:var(--card);
+    border-radius:28px;
+    padding:36px 30px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,0.25);
+    position:relative;
+    z-index:2;
+    max-width:300px;
+  }
+  .win-title{
+    font-size:38px;
+    font-weight:700;
+    color:var(--watermelon-dark);
+    margin-bottom:6px;
+  }
+  .win-desc{font-size:16px;color:var(--ink-soft);margin-bottom:20px;}
+  .falling{
+    position:absolute;
+    top:-40px;
+    font-size:28px;
+    animation:fall linear forwards;
+    z-index:1;
+  }
+  @keyframes fall{
+    to{transform:translateY(110vh) rotate(360deg);opacity:0.9;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="title"><span>🍓</span><span id="titleText">เกมบิงโกผลไม้</span><span class="leaf-dot">●</span><span>🍌</span></div>
+    <div class="header-controls">
+      <div class="lang-toggle" role="group" aria-label="เลือกภาษา">
+        <button id="btnTH" class="active" onclick="setLang('th')">ไทย</button>
+        <button id="btnEN" onclick="setLang('en')">EN</button>
+      </div>
+      <button class="icon-btn" onclick="newGame()" title="เริ่มใหม่" id="newGameBtn">🔄</button>
+    </div>
+  </header>
+  <div class="subtitle" id="subtitleText">แตะช่องผลไม้ให้ตรงกับคำที่เรียก ครบ 1 แถว แนวตั้ง แนวนอน หรือทแยง = บิงโก!</div>
+
+  <div class="game-area">
+    <div class="caller-col">
+      <div class="caller-card">
+        <div class="caller-label" id="callerLabel">กำลังเรียก...</div>
+        <div class="caller-emoji" id="callerEmoji">🍎</div>
+        <div class="caller-name" id="callerName">แอปเปิ้ล</div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="caller-buttons">
+          <button class="pill-btn secondary" id="playPauseBtn" onclick="togglePause()">⏸️ <span id="playPauseLabel">หยุดชั่วคราว</span></button>
+          <button class="pill-btn secondary" onclick="skipNext()">⏭️ <span id="nextLabel">ถัดไป</span></button>
+          <button class="pill-btn primary" onclick="replayCurrent()">🔊 <span id="replayLabel">ฟังอีกครั้ง</span></button>
+        </div>
+        <div class="history">
+          <div class="history-label" id="historyLabel">คำที่เรียกแล้ว</div>
+          <div class="history-chips" id="historyChips"></div>
+        </div>
+      </div>
+      <button class="howto-toggle" onclick="toggleHowTo()" id="howToBtn">วิธีเล่น ▾</button>
+      <div class="howto-box" id="howToBox"></div>
+    </div>
+
+    <div class="board-col">
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+</div>
+
+<div class="win-overlay" id="winOverlay">
+  <div class="win-card">
+    <div class="win-title" id="winTitle">บิงโก! 🎉</div>
+    <div class="win-desc" id="winDesc">เก่งมาก!</div>
+    <button class="pill-btn primary" onclick="newGame()" id="playAgainBtn">เล่นอีกครั้ง</button>
+  </div>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+const FRUITS = [
+  { emoji:'🍎', th:'แอปเปิ้ล',      en:'Apple',      color:'#FFE3E3' },
+  { emoji:'🍌', th:'กล้วย',         en:'Banana',     color:'#FFF9DB' },
+  { emoji:'🍊', th:'ส้ม',           en:'Orange',     color:'#FFE8CC' },
+  { emoji:'🍇', th:'องุ่น',         en:'Grapes',     color:'#F3E8FF' },
+  { emoji:'🍍', th:'สับปะรด',       en:'Pineapple',  color:'#FFF3BF' },
+  { emoji:'🥭', th:'มะม่วง',        en:'Mango',      color:'#FFE8A3' },
+  { emoji:'🍉', th:'แตงโม',         en:'Watermelon', color:'#FFE0E6' },
+  { emoji:'🍓', th:'สตรอว์เบอร์รี่', en:'Strawberry', color:'#FFE0E0' },
+  { emoji:'🍐', th:'ลูกแพร์',       en:'Pear',       color:'#F1F8E9' },
+  { emoji:'🍑', th:'ลูกพีช',        en:'Peach',      color:'#FFE9DA' },
+  { emoji:'🍒', th:'เชอร์รี่',      en:'Cherry',     color:'#FFDCE5' },
+  { emoji:'🥝', th:'กีวี',          en:'Kiwi',       color:'#EFFADC' },
+  { emoji:'🥥', th:'มะพร้าว',       en:'Coconut',    color:'#F5F0E8' },
+  { emoji:'🍋', th:'เลมอน',         en:'Lemon',      color:'#FFFACC' },
+  { emoji:'🍈', th:'เมล่อน',        en:'Melon',      color:'#EFFBE0' },
+  { emoji:'🫐', th:'บลูเบอร์รี่',   en:'Blueberry',  color:'#E5E9FF' },
+];
+
+const TXT = {
+  th:{
+    title:'เกมบิงโกผลไม้', subtitle:'แตะช่องผลไม้ให้ตรงกับคำที่เรียก ครบ 1 แถว แนวตั้ง แนวนอน หรือทแยง = บิงโก!',
+    calling:'กำลังเรียก...', allCalled:'เรียกครบทุกช่องแล้ว!',
+    pause:'หยุดชั่วคราว', resume:'เล่นต่อ', next:'ถัดไป', replay:'ฟังอีกครั้ง',
+    history:'คำที่เรียกแล้ว', howto:'วิธีเล่น',
+    howtoText:'ฟังเสียงเรียกชื่อผลไม้ (หรือให้คุณครูอ่านออกเสียงเอง) แล้วแตะที่ช่องผลไม้บนกระดานที่ตรงกับคำที่เรียก ถ้าทำเครื่องหมายได้ครบ 1 แถว แนวตั้ง แนวนอน หรือแนวทแยง ถือว่า "บิงโก!" 🎉 กดปุ่ม 🔄 เพื่อเริ่มเกมใหม่และสลับตำแหน่งผลไม้',
+    winTitle:'บิงโก! 🎉', winDesc:'เก่งมาก! เล่นอีกครั้งไหม?', playAgain:'เล่นอีกครั้ง',
+    notCalled:'ยังไม่ถูกเรียกนะ ลองฟังอีกครั้ง!'
+  },
+  en:{
+    title:'Fruit Bingo', subtitle:'Tap the matching fruit when it\'s called. Complete one row, column, or diagonal to win — that\'s BINGO!',
+    calling:'Calling...', allCalled:'All fruits called!',
+    pause:'Pause', resume:'Resume', next:'Next', replay:'Replay',
+    history:'Called so far', howto:'How to play',
+    howtoText:'Listen for the fruit name (or have your teacher say it out loud), then tap the matching box on the board. Complete one full row, column, or diagonal to win — that\'s BINGO! 🎉 Tap 🔄 to start a new game with a fresh board.',
+    winTitle:'BINGO! 🎉', winDesc:'Great job! Play again?', playAgain:'Play Again',
+    notCalled:'Not called yet — listen again!'
+  }
+};
+
+const CALL_INTERVAL = 5000; // ms
+const ROWS=[[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]];
+const COLS=[[0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15]];
+const DIAGS=[[0,5,10,15],[3,6,9,12]];
+const ALL_LINES = ROWS.concat(COLS, DIAGS);
+
+/* ===================== STATE ===================== */
+let lang = 'th';
+let board = [];          // board[cellPos] = fruit index
+let calledOrder = [];    // sequence of fruit indices called
+let calledSet = new Set();
+let markedSet = new Set(); // cell positions marked
+let autoPlay = true;
+let timerInterval = null;
+let timeLeft = CALL_INTERVAL;
+let gameWon = false;
+let howToOpen = false;
+
+/* ===================== HELPERS ===================== */
+function shuffledIndices(n){
+  const arr = Array.from({length:n}, (_,i)=>i);
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === 'th' ? 'th-TH' : 'en-US';
+    u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }catch(e){ /* silently ignore if TTS unavailable */ }
+}
+
+/* ===================== GAME SETUP ===================== */
+function newGame(){
+  board = shuffledIndices(16);
+  calledOrder = [];
+  calledSet = new Set();
+  markedSet = new Set();
+  autoPlay = true;
+  gameWon = false;
+  howToOpen = false;
+  document.getElementById('howToBox').classList.remove('open');
+  document.getElementById('winOverlay').classList.remove('show');
+  document.getElementById('winOverlay').innerHTML = document.getElementById('winOverlay').innerHTML; // keep structure
+  clearFalling();
+  renderBoard();
+  renderHistory();
+  updatePlayPauseLabel();
+  callNext(true);
+}
+
+function renderBoard(){
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  board.forEach((fruitIdx, pos)=>{
+    const f = FRUITS[fruitIdx];
+    const cell = document.createElement('button');
+    cell.className = 'cell' + (markedSet.has(pos) ? ' marked':'');
+    cell.style.background = f.color;
+    cell.setAttribute('aria-label', lang==='th'? f.th : f.en);
+    cell.innerHTML = `
+      <span class="emoji">${f.emoji}</span>
+      <span class="label">${lang==='th'? f.th : f.en}</span>
+      <span class="stamp">${stampSVG()}</span>
+    `;
+    cell.onclick = ()=>onCellTap(pos, cell);
+    el.appendChild(cell);
+  });
+  // re-apply win highlight if already won (e.g. language switch after win)
+  if(gameWon && window.currentWinLine){
+    window.currentWinLine.forEach(pos=>{
+      el.children[pos].classList.add('win-cell');
+    });
+  }
+}
+
+function stampSVG(){
+  return `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 13l4 4L19 7" stroke="#3A9357" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+function onCellTap(pos, cellEl){
+  if(gameWon) return;
+  const fruitIdx = board[pos];
+  if(!calledSet.has(fruitIdx)){
+    cellEl.classList.remove('shake'); void cellEl.offsetWidth; cellEl.classList.add('shake');
+    toast(TXT[lang].notCalled);
+    return;
+  }
+  if(markedSet.has(pos)) markedSet.delete(pos);
+  else markedSet.add(pos);
+  cellEl.classList.toggle('marked');
+  checkWin();
+}
+
+let toastTimeout = null;
+function toast(msg){
+  let t = document.getElementById('toastEl');
+  if(!t){
+    t = document.createElement('div');
+    t.id='toastEl';
+    t.style.position='fixed';
+    t.style.bottom='24px';
+    t.style.left='50%';
+    t.style.transform='translateX(-50%)';
+    t.style.background='#3A2E1F';
+    t.style.color='#fff';
+    t.style.padding='10px 18px';
+    t.style.borderRadius='999px';
+    t.style.fontFamily="'Mali',sans-serif";
+    t.style.fontWeight='700';
+    t.style.fontSize='14px';
+    t.style.zIndex='100';
+    t.style.boxShadow='0 8px 20px rgba(0,0,0,0.25)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity='1';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; }, 1400);
+}
+
+/* ===================== CALLING ===================== */
+function callNext(isFirst){
+  clearInterval(timerInterval);
+  if(calledSet.size >= 16){
+    document.getElementById('callerLabel').textContent = TXT[lang].allCalled;
+    document.getElementById('progressFill').style.width = '0%';
+    return;
+  }
+  const remaining = FRUITS.map((_,i)=>i).filter(i=>!calledSet.has(i));
+  const pick = remaining[Math.floor(Math.random()*remaining.length)];
+  calledSet.add(pick);
+  calledOrder.push(pick);
+  renderCaller(pick);
+  renderHistory();
+  speak(lang==='th'? FRUITS[pick].th : FRUITS[pick].en);
+  if(autoPlay) startTimer();
+}
+
+function renderCaller(fruitIdx){
+  const f = FRUITS[fruitIdx];
+  document.getElementById('callerLabel').textContent = TXT[lang].calling;
+  const emojiEl = document.getElementById('callerEmoji');
+  emojiEl.style.animation='none'; void emojiEl.offsetWidth; emojiEl.style.animation='';
+  emojiEl.textContent = f.emoji;
+  document.getElementById('callerName').textContent = lang==='th'? f.th : f.en;
+  window.currentCalledFruit = fruitIdx;
+}
+
+function renderHistory(){
+  const el = document.getElementById('historyChips');
+  el.innerHTML = calledOrder.map(i=>`<span class="chip">${FRUITS[i].emoji}</span>`).join('');
+}
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timeLeft = CALL_INTERVAL;
+  document.getElementById('progressFill').style.width='100%';
+  const startTime = Date.now();
+  timerInterval = setInterval(()=>{
+    const elapsed = Date.now() - startTime;
+    const pct = Math.max(0, 100 - (elapsed/CALL_INTERVAL)*100);
+    document.getElementById('progressFill').style.width = pct+'%';
+    if(elapsed >= CALL_INTERVAL){
+      clearInterval(timerInterval);
+      callNext();
+    }
+  }, 80);
+}
+
+function togglePause(){
+  autoPlay = !autoPlay;
+  updatePlayPauseLabel();
+  if(autoPlay){ startTimer(); }
+  else{ clearInterval(timerInterval); }
+}
+function updatePlayPauseLabel(){
+  document.getElementById('playPauseBtn').firstChild.textContent = autoPlay? '⏸️ ' : '▶️ ';
+  document.getElementById('playPauseLabel').textContent = autoPlay? TXT[lang].pause : TXT[lang].resume;
+}
+function skipNext(){ callNext(); }
+function replayCurrent(){
+  if(window.currentCalledFruit===undefined) return;
+  speak(lang==='th'? FRUITS[window.currentCalledFruit].th : FRUITS[window.currentCalledFruit].en);
+}
+
+/* ===================== WIN CHECK ===================== */
+function checkWin(){
+  for(const line of ALL_LINES){
+    if(line.every(pos=>markedSet.has(pos))){
+      gameWon = true;
+      window.currentWinLine = line;
+      clearInterval(timerInterval);
+      line.forEach(pos=>{
+        document.getElementById('board').children[pos].classList.add('win-cell');
+      });
+      showWin();
+      return;
+    }
+  }
+}
+
+function showWin(){
+  document.getElementById('winTitle').textContent = TXT[lang].winTitle;
+  document.getElementById('winDesc').textContent = TXT[lang].winDesc;
+  document.getElementById('playAgainBtn').textContent = TXT[lang].playAgain;
+  document.getElementById('winOverlay').classList.add('show');
+  speak(lang==='th' ? 'บิงโก' : 'Bingo');
+  spawnFalling();
+}
+
+function spawnFalling(){
+  const overlay = document.getElementById('winOverlay');
+  const emojis = FRUITS.map(f=>f.emoji);
+  for(let i=0;i<24;i++){
+    const span = document.createElement('span');
+    span.className='falling';
+    span.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    span.style.left = Math.random()*100+'%';
+    span.style.animationDuration = (2.5+Math.random()*2.5)+'s';
+    span.style.animationDelay = (Math.random()*1.2)+'s';
+    span.style.fontSize = (20+Math.random()*20)+'px';
+    overlay.appendChild(span);
+  }
+}
+function clearFalling(){
+  document.querySelectorAll('.falling').forEach(el=>el.remove());
+}
+
+/* ===================== LANGUAGE ===================== */
+function setLang(l){
+  lang = l;
+  document.getElementById('btnTH').classList.toggle('active', l==='th');
+  document.getElementById('btnEN').classList.toggle('active', l==='en');
+  document.documentElement.lang = l;
+  document.getElementById('titleText').textContent = TXT[l].title;
+  document.getElementById('subtitleText').textContent = TXT[l].subtitle;
+  document.getElementById('historyLabel').textContent = TXT[l].history;
+  document.getElementById('howToBtn').textContent = TXT[l].howto + ' ▾';
+  document.getElementById('howToBox').textContent = TXT[l].howtoText;
+  document.getElementById('replayLabel').textContent = TXT[l].replay;
+  document.getElementById('nextLabel').textContent = TXT[l].next;
+  updatePlayPauseLabel();
+  if(window.currentCalledFruit!==undefined){
+    document.getElementById('callerLabel').textContent = calledSet.size>=16 ? TXT[l].allCalled : TXT[l].calling;
+    document.getElementById('callerName').textContent = lang==='th'? FRUITS[window.currentCalledFruit].th : FRUITS[window.currentCalledFruit].en;
+  }
+  if(gameWon){
+    document.getElementById('winTitle').textContent = TXT[l].winTitle;
+    document.getElementById('winDesc').textContent = TXT[l].winDesc;
+    document.getElementById('playAgainBtn').textContent = TXT[l].playAgain;
+  }
+  renderBoard();
+}
+
+function toggleHowTo(){
+  howToOpen = !howToOpen;
+  document.getElementById('howToBox').classList.toggle('open', howToOpen);
+  document.getElementById('howToBox').textContent = TXT[lang].howtoText;
+}
+
+/* ===================== INIT ===================== */
+setLang('th');
+newGame();
+</script>
+</body>
+</html>
